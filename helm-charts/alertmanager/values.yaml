@@ -1,0 +1,5 @@
+---
+slack_hook_url: ' '
+slack_channel: '#dvs_03_notifications'
+
+#helm install alermanager alertmanager/ --set slack_hook_url='https://hooks.slack.com/services/.....'

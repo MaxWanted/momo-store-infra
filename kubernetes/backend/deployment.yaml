@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  replicas: 1
+  revisionHistoryLimit: 15
+  # Стратегия развёртывания. Recreate — удалит сначала все старые поды
+  # Есть и более гибкая стратегии, например, RollingUpdate, которая будет обновлять поды порциями
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 80%
+      maxSurge: 20% 
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - preference:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - back
+              weight: 1
+      containers:
+        - name: backend
+          image: gitlab.praktikum-services.ru:5050/m.a.derkach.cloud/momo-store/momo-backend:latest
+          #image: cr.yandex/crpq3oqiotl5kgphucu3/momo-store-backend:latest
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "2000m" 
+          ports:
+            - name: backend
+              containerPort: 8081
+          # livenessProbe:
+          #   httpGet:
+          #     path: /actuator/health
+          #     port: 8081
+          #   initialDelaySeconds: 15
+          #   periodSeconds: 30
+          #   timeoutSeconds: 1
+          #   failureThreshold: 6
+      imagePullSecrets:
+        - name: docker-config-secret

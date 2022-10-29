@@ -1,0 +1,71 @@
+nameOverride: ""
+fullnameOverride: ""
+
+###deployment
+application:
+  replicaCount: 1
+  revisionHistoryLimit: 5
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8081"
+    prometheus.io/path: "/metrics"
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - preference:
+            matchExpressions:
+              - key: app
+                operator: In
+                values:
+                  - back
+          weight: 1
+  nodeSelector: {}
+  tolerations: []
+  imagePullSecrets:
+    - name: docker-config-secret
+
+  #pod
+  image:
+    repository: gitlab.praktikum-services.ru:5050/m.a.derkach.cloud/momo-store/momo-backend
+    #image: cr.yandex/crpq3oqiotl5kgphucu3/momo-store-frontend:nginx
+    pullPolicy: Always
+    tag: "latest"
+  probes: {}
+    # readinessProbe:
+    #   httpGet:
+    #     path: /actuator/health
+    #     port: 8081
+    #   initialDelaySeconds: 5
+    #   periodSeconds: 15
+    # livenessProbe:
+    #   httpGet:
+    #     path: /actuator/health
+    #     port: 8081
+    #   initialDelaySeconds: 5
+    #   periodSeconds: 15
+    #   timeoutSeconds: 5
+  resources:
+    limits:
+      memory: "256Mi"
+      cpu: "1000m"
+    requests:
+      memory: "64Mi"
+      cpu: "100m"
+
+###service
+service:
+  type: ClusterIP
+  port: 80
+  name: ""
+  nodePort: ""
+
+ingress:
+  enabled: false
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+

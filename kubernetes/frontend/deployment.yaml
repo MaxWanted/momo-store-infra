@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  revisionHistoryLimit: 15
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - preference:
+                matchExpressions:
+                  - key: app
+                    operator: In
+                    values:
+                    - front
+              weight: 1
+      # nodeSelector:
+      #   app: front
+      containers:
+        - name: frontend
+          image: gitlab.praktikum-services.ru:5050/m.a.derkach.cloud/momo-store/momo-frontend:latest
+          #image: cr.yandex/crpq3oqiotl5kgphucu3/momo-store-frontend:nginx
+          imagePullPolicy: IfNotPresent          
+          volumeMounts:
+                - name: nginx-conf
+                  mountPath: /etc/nginx/nginx.conf
+                  subPath: nginx.conf
+                  readOnly: true
+                # - name: dockersock
+                #   mountPath: /tmp/docker.sock      
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            # limits:
+            #   memory: "256Mi"
+            #   cpu: "1000m"
+          ports:
+            - name: frontend
+              containerPort: 80
+              protocol: TCP      
+      imagePullSecrets:
+        - name: docker-config-secret            
+      volumes:
+        - name: nginx-conf
+          configMap:
+            name: nginx-conf
+            items:
+              - key: nginx.conf
+                path: nginx.conf
+        # - name: dockersock
+        #   hostPath:
+        #     path: /var/run/docker.sock
+            

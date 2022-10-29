@@ -1,0 +1,25 @@
+#terraform
+terraform/**/.terraform/**
+terraform/**/.terraform.*
+terraform/**/*.tfstate
+terraform/**/*.tfstate.*
+
+# Helm Chart
+**/charts/*.tgz
+*.tgz
+test.yaml
+helm-charts/test.yaml
+helm-charts/**/requirements.lock
+helm-charts/**/Chart.lock
+helm-charts/**/charts/*.tgz
+
+# helm-charts/alertmanager
+# helm-charts/grafana
+# helm-charts/prometheus
+
+# helm-charts/alertmanager/**/*
+# helm-charts/grafana/**/*
+# helm-charts/prometheus/**/*
+
+
+.history

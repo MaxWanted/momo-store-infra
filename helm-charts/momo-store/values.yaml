@@ -1,0 +1,11 @@
+backend:
+  enabled: true
+  image:
+    repository: gitlab.praktikum-services.ru:5050/m.a.derkach.cloud/momo-store/momo-backend    
+    tag: "latest"
+frontend:
+  enabled: true
+  image:
+    repository: gitlab.praktikum-services.ru:5050/m.a.derkach.cloud/momo-store/momo-frontend    
+    tag: "latest"
+   

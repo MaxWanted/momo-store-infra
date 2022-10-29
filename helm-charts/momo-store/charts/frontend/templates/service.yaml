@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "momo-store.fullname" . }}-svc
+  labels:
+    {{- include "momo-store.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      protocol: TCP
+      targetPort: 80
+      {{- if .Values.service.name }}
+      name: {{ .Values.service.name }}    
+      {{- end }}
+      {{- if and (eq .Values.service.type "nodePort") .Values.service.nodePort}}
+      nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
+  selector:
+    {{- include "momo-store.selectorLabels" . | nindent 4 }}

@@ -1,0 +1,72 @@
+#pipeline for deployment app to k8s cluster
+
+stages:
+  - testing
+  - release
+  - deploy
+
+lint-charts:
+  stage: testing
+  image:
+    name: dtzar/helm-kubectl:3.5.3
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always  
+    - if: '$CI_COMMIT_TAG =~ "/^$/"'
+      changes:
+        - helm-charts/momo-store/**/*
+        - helm-charts/momo-store/Chart.yaml
+  script:
+    - helm lint helm-charts/momo-store
+    - helm lint helm-charts/momo-store/charts/backend
+    - helm lint helm-charts/momo-store/charts/frontend
+
+package-release:
+  stage: release
+  image:
+    name: dtzar/helm-kubectl:3.5.3
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - if: '$CI_COMMIT_TAG =~ "/^$/"'
+      changes:
+        - helm-charts/momo-store/**/*
+        - helm-charts/momo-store/Chart.yaml
+  script:
+    - apk add curl
+    - helm repo add nexus-helm-repo ${NEXUS_HELM_REPO_URL}  --username  ${NEXUS_USERNAME} --password ${NEXUS_PASSWORD}
+    - helm repo update
+    - cd helm-charts/momo-store
+    - helm package .
+    - GET_VER=`printf -- '%s\n' * | awk -F'momo-store-|.tar.gz' '/momo-store/{print $2}' | rev | cut -f 2- -d '.' | rev`  #cut version from file    
+    - curl -u "${NEXUS_USERNAME}:${NEXUS_PASSWORD}" http://${NEXUS_SERVER}/repository/${NEXUS_HELM_REPO}/momo-store/ --upload-file  momo-store-${GET_VER}.tgz    
+  artifacts:
+    paths:
+      - helm-charts/momo-store/*.tgz      
+
+#deploy to k8s cluster
+deploy:
+  variables:
+    HELM_NAME: momo-store #app name
+  stage: deploy
+  image:
+    name: dtzar/helm-kubectl:3.5.3
+  before_script:
+    - mkdir ~/.kube
+    - cd ~/.kube
+    - echo "$KUBECONFIG" > "$(pwd)/config"
+    - chmod go-r ~/.kube/config
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: manual
+    - if: '$CI_COMMIT_TAG =~ "/^$/"'
+      changes:
+        - helm-charts/momo-store/Chart.yaml
+      when: always
+  script:
+    - cd ${CI_PROJECT_DIR}/helm-charts/momo-store
+    - GET_VER=`printf -- '%s\n' * | awk -F'momo-store-|.tar.gz' '/momo-store/{print $2}' | rev | cut -f 2- -d '.' | rev`  #cut version from file  
+    - helm upgrade --install ${HELM_NAME} momo-store-${GET_VER}.tgz
+    - rm ~/.kube/config
+  dependencies:
+    - package-release

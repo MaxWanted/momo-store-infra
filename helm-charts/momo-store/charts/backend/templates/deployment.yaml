@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "momo-store.fullname" . }}
+  labels:
+    {{- include "momo-store.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.application.replicaCount }}
+  revisionHistoryLimit: {{ .Values.application.revisionHistoryLimit }} 
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      {{- include "momo-store.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "momo-store.selectorLabels" . | nindent 8 }}
+      {{- with .Values.application.podAnnotations }}
+        date: "{{ now | unixEpoch }}"
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      affinity:
+        {{- with .Values.application.affinity }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.application.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}       
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.application.image.repository }}:{{ .Values.application.image.tag | default .Chart.AppVersion }}"
+          #image: cr.yandex/crpq3oqiotl5kgphucu3/momo-store-backend:latest
+          imagePullPolicy: {{ .Values.application.image.pullPolicy }}
+          ports:
+            - name: backend
+              containerPort: 8081
+          {{- with .Values.application.probes }}
+          {{- toYaml . | nindent 10 }}
+          {{- end}}
+          {{- with .Values.application.resources }}        
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}            
+      
