@@ -1,9 +1,14 @@
-# Momo Store aka Пельменная №2
+# Momo Store aka Пельменная №2  
+
+```diff
+- Site is currently unavailable! -
+```
+
 [www.momostore.ru](https://www.momostore.ru/) 
 
 ##### Gitlab repositories  <br>
-- Application - [momo-store](https://gitlab.praktikum-services.ru/m.a.derkach.cloud/momo-store)
-- Infrastructure - [momo-infra](https://gitlab.praktikum-services.ru/m.a.derkach.cloud/momo-infra)
+- Application - [momo-store](https://github.com/MaxWanted/momo-store)
+- Infrastructure - [momo-infra](https://github.com/MaxWanted/momo-store-infra)
 
 *Backend: Golang* <br>
 *Frontend: HTML + JavaScript* <br>
